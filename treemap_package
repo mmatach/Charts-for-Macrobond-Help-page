@@ -32,7 +32,7 @@ group<-countrycode(as.vector(group), origin="iso2c", destination ="country.name"
 #get continent for each country
 continent<-countrycode(sourcevar = group, origin = "country.name",destination = "continent")
 
-#create data
+#Create data
 data <- data.frame(group, value)
 data2 <- data.frame(continent, group, value)
 
