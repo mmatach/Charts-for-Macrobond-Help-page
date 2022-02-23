@@ -1,0 +1,61 @@
+library(MacrobondAPI)
+library(countrycode)
+library(treemap)
+#create list of series from Macrobond database
+list_of_series<-c("detrad4162","detrad4163","detrad4164","detrad4165","detrad4166","detrad4167","detrad4168", "detrad4169",
+                  "detrad4170","detrad4171","detrad4172","detrad4173","detrad4174","detrad4175","detrad4176","detrad4177",
+                  "detrad4178","detrad4179","detrad4180","detrad4181","detrad4182","detrad4183","detrad4184","detrad4185",
+                  "detrad4186","detrad4187","detrad4188", "detrad4189","detrad4190","detrad4191","detrad4192","detrad4193",
+                  "detrad4194","detrad4195","detrad4196","detrad4197","detrad4198","detrad4199","detrad4200","detrad4201",
+                  "detrad4202","detrad4203","detrad4204","detrad4205","detrad4206","detrad4207","detrad4208","detrad4209",
+                  "detrad4210","detrad4211","detrad4212","detrad4213","detrad4214","detrad4215","detrad4216","detrad4217",
+                  "detrad4218","detrad4219","detrad4220","detrad4221","detrad4222","detrad4223","detrad4224","detrad4225",
+                  "detrad4226","detrad4227","detrad4228","detrad4229")
+
+#create empty vectors
+value <-NULL
+group<-NULL
+
+#get last values 
+for (i in list_of_series){
+  value<-append(value, last(getValues(FetchOneTimeSeries(i))))
+}
+
+#get export countries ISO codes
+for (i in list_of_series){
+  group<-append(group, getMetadataValues(getMetadata(FetchOneTimeSeries(i)), "TradeCounterpart"))
+}
+
+#change ISO codes to names
+group<-countrycode(as.vector(group), origin="iso2c", destination ="country.name")
+
+#get continent for each country
+continent<-countrycode(sourcevar = group, origin = "country.name",destination = "continent")
+
+# Create data
+data <- data.frame(group, value)
+data2 <- data.frame(continent, group, value)
+
+# treemap
+treemap(data,
+        index="group",
+        vSize="value",
+        type="index",                           
+        palette = "Set3",
+        align.labels = c("left", "top"),
+        fontsize.labels=10,
+        fontcolor.labels="black",
+        title="Export of cars from Germany to... (in EUR)",  
+        fontsize.title=18)
+
+# treemap with by continent grouping
+treemap(data2,
+        index=c("continent", "group"),
+        vSize="value",
+        type="index",                           
+        palette = "Set1",
+fontsize.labels=c(0,10),
+fontcolor.labels="white",
+align.labels = c("left", "top"),
+title="Export of cars from Germany to... (in EUR)",  
+fontsize.title=18)
