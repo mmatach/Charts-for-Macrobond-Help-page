@@ -60,4 +60,3 @@ chart<-ggplot(data2, aes(area = value, fill = continent, label = group, subgroup
 conts<-c("Europe"="#256BA2", "Africa"="#F68D2E", "Oceania"="#CD545B", "Americas"="#8E51A8", "Asia"="#58A291")
 chart+scale_fill_manual(values = conts)+
   geom_treemap_subgroup_border(colour = "white", size = 3)
-  
