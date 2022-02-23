@@ -32,11 +32,11 @@ group<-countrycode(as.vector(group), origin="iso2c", destination ="country.name"
 #get continent for each country
 continent<-countrycode(sourcevar = group, origin = "country.name",destination = "continent")
 
-# Create data
+#create data
 data <- data.frame(group, value)
 data2 <- data.frame(continent, group, value)
 
-# treemap
+#treemap
 treemap(data,
         index="group",
         vSize="value",
@@ -48,7 +48,7 @@ treemap(data,
         title="Export of cars from Germany to... (in EUR)",  
         fontsize.title=18)
 
-# treemap with by continent grouping
+#treemap with by continent grouping
 treemap(data2,
         index=c("continent", "group"),
         vSize="value",
