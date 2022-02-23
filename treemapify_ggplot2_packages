@@ -38,7 +38,17 @@ continent<-countrycode(sourcevar = group, origin = "country.name",destination = 
 data <- data.frame(group, value)
 data2 <- data.frame(continent, group, value)
 
-#create treemap
+#treemap with legend
+chart<-ggplot(data2, aes(area = value, fill = continent, label = group)) +
+  geom_treemap() +
+  geom_treemap_text(colour = "black", place = "centre", size = 12)+
+  ggtitle("Export of cars from Germany to... (in EUR)")+
+  theme(plot.title=element_text(size=20, face="bold"))
+
+#color palette
+chart+scale_fill_brewer(palette="PuBu")
+
+#treemap with by continent grouping
 chart<-ggplot(data2, aes(area = value, fill = continent, label = group, subgroup=continent)) +
   geom_treemap() +
   geom_treemap_subgroup_text(place = "centre", grow = TRUE, alpha = 0.25, colour = "black") +
@@ -46,7 +56,8 @@ chart<-ggplot(data2, aes(area = value, fill = continent, label = group, subgroup
   ggtitle("Export of cars from Germany to... (in EUR)")+
   theme(legend.position = "none", plot.title=element_text(size=20, face="bold"))
 
-#MB color pallette
+#MB color palette
 conts<-c("Europe"="#256BA2", "Africa"="#F68D2E", "Oceania"="#CD545B", "Americas"="#8E51A8", "Asia"="#58A291")
 chart+scale_fill_manual(values = conts)+
   geom_treemap_subgroup_border(colour = "white", size = 3)
+  
