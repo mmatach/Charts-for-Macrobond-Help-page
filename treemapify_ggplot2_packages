@@ -10,7 +10,7 @@ list_of_series<-c("detrad4162","detrad4163","detrad4164","detrad4165","detrad416
                   "detrad4186","detrad4187","detrad4188", "detrad4189","detrad4190","detrad4191","detrad4192","detrad4193",
                   "detrad4194","detrad4195","detrad4196","detrad4197","detrad4198","detrad4199","detrad4200","detrad4201",
                   "detrad4202","detrad4203","detrad4204","detrad4205","detrad4206","detrad4207","detrad4208","detrad4209",
-                  "detrad4210","detrad4211","detrad4212","detrad4213","detrad4214","detrad4215","detrad4216","detrad4217",
+                  "detrad4210","detrad4211","detrad4212","detrad4213","detrad4214","detrad4215","detrad4217",
                   "detrad4218","detrad4219","detrad4220","detrad4221","detrad4222","detrad4223","detrad4224","detrad4225",
                   "detrad4226","detrad4227","detrad4228","detrad4229")
 
@@ -18,12 +18,12 @@ list_of_series<-c("detrad4162","detrad4163","detrad4164","detrad4165","detrad416
 value <-NULL
 group<-NULL
 
-#get last values 
+#get last values for each series
 for (i in list_of_series){
   value<-append(value, last(getValues(FetchOneTimeSeries(i))))
 }
 
-#get export countries ISO codes
+#get export countries ISO codes for each series based on TradeCounterpart metadata attribute
 for (i in list_of_series){
   group<-append(group, getMetadataValues(getMetadata(FetchOneTimeSeries(i)), "TradeCounterpart"))
 }
