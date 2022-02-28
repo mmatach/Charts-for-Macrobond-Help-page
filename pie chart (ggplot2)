@@ -1,0 +1,24 @@
+library(MacrobondAPI)
+library(ggplot2)
+
+#get series, calculate N/A series
+appr<-getValues(FetchOneTimeSeries("uspoli3001"))
+disappr<-getValues(FetchOneTimeSeries("uspoli3002"))
+na<-abs(100-(appr+disappr))
+
+#create data frame with values and categories
+answer<-c(last(appr), last(disappr), last(na))
+labels<-c("Yes","No","N/A")
+df<-data.frame(answer, labels)
+
+#create pie chart with legend and value labels
+ggplot(df, aes(x = "", y = answer, fill = labels)) +
+  geom_bar(stat="identity", width=1, color="white") +
+  coord_polar(theta = "y") + #create circle
+  scale_fill_manual(values = c("#787276","#CD545B","#17456d"))+ #set colors
+  guides(fill = guide_legend(reverse=TRUE, title = "Answer")) + #reverse legend, set legend's title
+  geom_label(aes(label = round(answer, 1)), color = c("white", "white", "white"),
+             position = position_stack(vjust = 0.5), show.legend = FALSE) + #settings for value labels
+  theme_void()+ #remove background
+  ggtitle("Approval for President Biden")+ 
+  theme(plot.title=element_text(size=rel(2), hjust=0.5)) #title settings
