@@ -1,0 +1,17 @@
+library(MacrobondAPI)
+#baseR
+#get series, calculate N/A series
+appr<-getValues(FetchOneTimeSeries("uspoli3001"))
+disappr<-getValues(FetchOneTimeSeries("uspoli3002"))
+na<-abs(100-(appr+disappr))
+
+#create vector with last values from each series
+answer<-c(last(appr), last(disappr), last(na))
+
+#create elements for pie chart
+labels<-c("Yes","No","N/A")
+colors<-c("#17456d", "#CD545B", "#787276")
+title<-"Approval for President Biden"
+
+#create pie chart
+pie(answer, labels = labels, border="white", col=colors, main=title, clockwise=TRUE)
