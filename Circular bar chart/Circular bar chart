@@ -1,0 +1,72 @@
+library(MacrobondAPI)
+library(ggplot2)
+library(tidyverse)
+library(countrycode)
+
+#AUTOMATIC DOWNLOAD BY CONCEPT
+#choose series
+series<-FetchOneTimeSeries("ted_ar_ahw")
+# Getting the concept of a series and creating search query based on it
+query <- CreateSearchQuery() 
+setEntityTypeFilter(query, "TimeSeries") 
+addAttributeValueFilter(query, "RegionKey", getConcepts(series)) 
+country_set <- getEntities(SearchEntities(query))
+
+#create empty vectors
+list_of_series<-NULL
+values<-NULL
+country<-NULL
+
+#get list of series' codes
+for (i in country_set){
+  list_of_series<-append(list_of_series, getName(i))
+}
+
+#get last values 
+for (i in list_of_series){
+  values<-append(values, last(getValues(FetchOneTimeSeries(i))))
+}
+
+#get export countries ISO codes
+for (i in list_of_series){
+  country<-append(country, getMetadataValues(getMetadata(FetchOneTimeSeries(i)), "Region"))
+}
+
+#change ISO codes to names
+country<-countrycode(as.vector(country), origin="iso2c", destination ="country.name")
+
+#prepare data frame
+data <- data.frame(values, country) %>%
+  arrange(values) %>% #this will sort data frame only
+  mutate(country=factor(country, levels=country)) %>% #for ggplot2 you need to plot factor levels too
+  mutate(id=seq(1, nrow(data)))
+
+#prepare labels data
+label_data <- data
+
+#calculate the ANGLE of the labels
+number_of_bar <- nrow(label_data)
+#subtract 0.5 because the letter must have the angle of the center of the bars. Not extreme right(1) or extreme left (0)
+angle <-  90 - 360 * (label_data$id-0.5) /number_of_bar 
+
+#calculate the alignment of labels: right or left
+label_data$hjust<-ifelse(angle < -90, 1, 0)
+#flip angle BY to make them readable
+label_data$angle<-ifelse(angle < -90, angle+180, angle)
+
+p <- ggplot(label_data, aes(x=country, y=values)) + 
+  geom_bar(stat="identity", fill=alpha("#9054a5",1)) +
+  ylim(-800,3000)+
+  coord_polar(start = 0)+
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-1,4), "cm") 
+  )+
+  geom_text(data=label_data, aes(x=id, y=values+5, label=country, hjust=hjust), 
+            color="black", family="Helvetica", fontface="bold",alpha=1, size=1.7, angle= label_data$angle, inherit.aes = FALSE)+ #add country labels
+  geom_text(data=label_data, aes(x=id, y=(-100), label=round(values,0), hjust=hjust), 
+            color="black", family="Helvetica",alpha=1, size=1, angle=label_data$angle, inherit.aes = FALSE) #add value labels
+p
