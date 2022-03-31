@@ -69,4 +69,5 @@ p <- ggplot(label_data, aes(x=country, y=values)) +
             color="black", family="Helvetica", fontface="bold",alpha=1, size=1.7, angle= label_data$angle, inherit.aes = FALSE)+ #add country labels
   geom_text(data=label_data, aes(x=id, y=(-100), label=round(values,0), hjust=hjust), 
             color="black", family="Helvetica",alpha=1, size=1, angle=label_data$angle, inherit.aes = FALSE) #add value labels
-p
+p + ggtitle("Annual Hours Worked per Worker")+
+  theme(plot.title = element_text(face="bold", size=12, hjust = 0.5))
