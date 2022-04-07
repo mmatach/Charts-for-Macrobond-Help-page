@@ -1,0 +1,66 @@
+library(MacrobondAPI)
+library(countrycode)
+library(tidyverse)
+library(ggplot2)
+library(ggrepel)
+
+#download series
+list_of_series <- c("imfcpi_132a_pcpiha_ix", "imfcpi_134a_pcpiha_ix",
+                    "imfcpi_136a_pcpiha_ix", "imfcpi_935a_pcpiha_ix",
+                    "imfcpi_936a_pcpiha_ix", "imfcpi_944a_pcpiha_ix",
+                    "imfcpi_964a_pcpiha_ix", "imfcpi_968a_pcpiha_ix")
+
+#create empty vectors
+values_1<-NULL
+values_2<-NULL
+country<-NULL
+
+#get first values from a specific date
+for (i in list_of_series){
+  values_1<-append(values_1, getValueAtDate(FetchOneTimeSeries(i), as.Date("2019-01-01")))
+}
+
+#get second values 
+for (i in list_of_series){
+  values_2<-append(values_2, last(getValues(FetchOneTimeSeries(i))))
+}
+
+#get country name
+for (i in list_of_series){
+  country<-append(country, getMetadataValues(getMetadata(FetchOneTimeSeries(i)), "Region"))
+}
+#change ISO codes to names
+country<-countrycode(as.vector(country), origin="iso2c", destination ="country.name")
+
+#prepare data frame
+data <- data.frame(values_1, values_2, country)
+colnames(data) <- c("Year2019","Year2021","country") #set column names specific for this data set
+data <- mutate(data, Year2019=round(Year2019, 1), Year2021=round(Year2021, 1)) #round up values 
+data <- gather(data, key="year", value="value", Year2019:Year2021)
+
+#chart
+ggplot(data = data, aes(x = year, y = value, group = country)) +
+  geom_line(aes(color = country, alpha = 1), size = 1) +
+  geom_point(aes(color = country, alpha = 1), size = 3) +
+  geom_text_repel(data = data %>% filter(year == "Year2019"), #filter data to apply settings only to the left group
+            aes(label=paste0(country, " - ", value)),
+                hjust = 1.4, size=2.5, fontface = "bold")+
+  geom_text_repel(data = data %>% filter(year == "Year2021"), #filter data to apply settings only to the right group
+            aes(label=paste0(value, " - ", country)),
+            hjust = -0.4, size=2.5, fontface = "bold")+
+  labs(title = "Inflation",
+       subtitle = "Harmonized, All Items",
+       caption = "Source: IMF")+
+  theme(legend.position = "none", #cleaning graphic elements
+        panel.border = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        axis.title.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        axis.ticks = element_blank(),
+        plot.title = element_text(size=14, face = "bold"),
+        plot.subtitle = element_text(size=8),
+        plot.caption = element_text(size=8))+
+  scale_x_discrete(position = "top")
