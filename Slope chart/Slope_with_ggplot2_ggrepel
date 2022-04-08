@@ -48,7 +48,7 @@ ggplot(data = data, aes(x = year, y = value, group = country)) +
   geom_text_repel(data = data %>% filter(year == "Year2021"), #filter data to apply settings only to the right group
             aes(label=paste0(value, " - ", country)),
             hjust = -0.4, size=2.5, fontface = "bold")+
-  labs(title = "Inflation",
+  labs(title = "Consumer Price Index",
        subtitle = "Harmonized, All Items",
        caption = "Source: IMF")+
   theme(legend.position = "none", #cleaning graphic elements
