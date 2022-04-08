@@ -1,0 +1,59 @@
+library(MacrobondAPI)
+library(countrycode)
+library(tidyverse)
+library(CGPfunctions)
+
+#download series
+list_of_series <- c("ameco_bgr_1_0_0_0_zcpih", "ameco_hun_1_0_0_0_zcpih", 
+                    "ameco_pol_1_0_0_0_zcpih", "ameco_rom_1_0_0_0_zcpih")
+
+#create empty vectors
+values_1<-NULL
+values_2<-NULL
+country<-NULL
+
+#check vintage times, when series was updated?
+getVintageTimes(FetchOneTimeSeriesWithRevisions("ameco_deu_1_0_0_0_zcpih"))
+
+#get value from vintage series for specified date
+for (i in list_of_series){
+  values_1<-append(values_1, last(getValues(getVintage(FetchOneTimeSeriesWithRevisions(i), as.Date("2021-12-01")))))
+}
+
+#get last value from current series 
+for (i in list_of_series){
+  values_2<-append(values_2, last(getValues(FetchOneTimeSeries(i))))
+}
+
+#get country name
+for (i in list_of_series){
+  country<-append(country, getMetadataValues(getMetadata(FetchOneTimeSeries(i)), "Region"))
+}
+#change ISO codes to names
+country<-countrycode(as.vector(country), origin="iso2c", destination ="country.name")
+
+#prepare data frame
+data <- data.frame(round(values_1, 1), round(values_2, 1), country) #round up series in one move
+colnames(data) <- c("2021 q4","2022 q1","country") #set column names specific for this data set
+data <- gather(data, key="year", value="value", "2021 q4":"2022 q1") #restructure data for the slope graph
+
+#prepare colors
+colors <- c("Bulgaria" = "#F68D2E","Hungary" = "gray", 
+            "Poland" = "#CD545B", "Romania"="gray")
+
+#chart
+newggslopegraph(dataframe = data,
+                Times = year,
+                Measurement = value,
+                Grouping = country,
+                Title = "CPI, estimate for 2023",
+                SubTitle = "From 2021 Q4 and 2022 Q1",
+                Caption = "Source: DG ECFIN",
+                LineThickness = 1.2,
+                LineColor = colors,
+                XTextSize = 8, #size of the column title
+                YTextSize = 3, #size of the country name
+                DataTextSize = 4, #size of the value
+                TitleTextSize = 17,
+                SubTitleTextSize = 10,
+                CaptionTextSize = 8)
