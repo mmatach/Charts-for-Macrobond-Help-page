@@ -1,0 +1,67 @@
+library(MacrobondAPI)
+library(tidyverse)
+library(ggstream)
+
+#create list of series from Macrobond database
+list_of_series<-c("cnprod0168", "cnprod0169", "cnprod0272", "cnprod0291", "cnprod0816")
+#NOTE, series in this example have uneven history 
+
+#create empty vectors
+dates<-NULL
+descriptions_short<-NULL
+values<-NULL
+
+#get dates
+for (i in list_of_series){
+  dates<-append(dates, getDatesAtStartOfPeriod(FetchOneTimeSeries(i)))
+}
+
+#get names
+#to get the neat description AND right number of descriptions for data frame you need additional steps:
+#1.download series description metadata with MacrobondAPI
+#2.remove unwanted string from it with str_remove
+#3.download all dates from that series with MacrobondAPI and calculate length of such vector
+#4.use the number in rep(x, length)
+#append(reproduce(shorten_it(name), length(number of dates)))
+for (i in list_of_series){
+  descriptions_short<-append(descriptions_short, rep(str_remove(getMetadataValues(getMetadata(FetchOneTimeSeries(i)), "Description"), "Electricity Generation, "),length(getDatesAtStartOfPeriod(FetchOneTimeSeries(i)))))
+}
+
+#get values 
+for (i in list_of_series){
+  values<-append(values, getValues(FetchOneTimeSeries(i)))
+}
+
+#create data frame
+data <- data.frame(year=dates,
+                   name=descriptions_short,
+                   value=values) %>%
+  mutate(value=na.approx(value)) %>% #fill NA with interpolated values
+  mutate(name=factor(name, levels=c("Solar Power","Wind Power", "Nuclear Power", "Hydro Power","Thermal Power"))) #for ggplot2 you need to select order of factor levels, otherwise it will be alphabetical
+
+#colors
+colors <- c("#f8d623", "#d5f0f0", "#a80092", "#43a2e2","#1c0606")
+
+#plot 1
+ggplot(data, aes(x = year, y = value, fill = name)) +
+  geom_stream()+ 
+  scale_fill_manual(values = colors)+ #colors
+  theme_minimal()+ #theme
+  guides(fill=guide_legend(title="China's Energy Mix"))+ #legend's title
+  xlim(limits = as.Date(c("1990-01-01", NA))) #shorten x-axis
+
+#plot 2
+ggplot(data, aes(x = year, y = value, fill = name)) +
+  geom_stream(type = "proportional")+ #type of streamchart
+  scale_fill_manual(values = colors)+ #colors
+  theme_minimal()+ #theme
+  guides(fill=guide_legend(title="China's Energy Mix"))+ #legend's title
+  xlim(limits = as.Date(c("1990-01-01", NA)))
+
+#plot 3
+ggplot(data, aes(x = year, y = value, fill = name)) +
+  geom_stream(type = "ridge")+ #type of streamchart
+  scale_fill_manual(values = colors)+ #colors
+  theme_minimal()+ #theme
+  guides(fill=guide_legend(title="China's Energy Mix"))+ #legend's title
+  xlim(limits = as.Date(c("1990-01-01", NA))) #shorten x-axis
