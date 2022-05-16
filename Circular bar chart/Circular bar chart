@@ -38,8 +38,8 @@ country<-countrycode(as.vector(country), origin="iso2c", destination ="country.n
 #prepare data frame
 data <- data.frame(values, country) %>%
   arrange(values) %>% #this will sort data frame only
-  mutate(country=factor(country, levels=country)) %>% #for ggplot2 you need to plot factor levels too
-  mutate(id=seq(1, nrow(data)))
+  mutate(country=factor(country, levels=country)) #for ggplot2 you need to plot factor levels too
+data <- mutate(data, id=seq(from=1, to=nrow(data)))
 
 #prepare labels data
 label_data <- data
