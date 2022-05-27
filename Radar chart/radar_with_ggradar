@@ -1,0 +1,61 @@
+library(MacrobondAPI)
+library(tidyverse)
+library(countrycode)
+library(ggradar)
+
+#First column is the name of the groups and each column represents a variable. 
+#All columns must have the same scale. 
+#If the values of your columns are not between 0 and 1 you will need to specify the minimum value with grid.min and the maximum value with grid.max.
+
+#create list of series
+list_of_series<-c("gii0828", "gii0974", "gii1266", "gii0682", "gii1120", #Nigeria
+                  "gii0849", "gii0995", "gii1287", "gii0703", "gii1141", #South Africa
+                  "gii0773", "gii0919", "gii1211", "gii0627", "gii1065") #Ethiopia
+
+#create empty vectors
+values<-NULL
+region<-NULL
+
+#get region
+for (i in list_of_series){
+  region<-append(region, getMetadataValues(getMetadata(FetchOneTimeSeries(i)), "Region"))
+}
+#change region ISO codes to names
+region<-countrycode(as.vector(region), origin="iso2c", destination ="country.name")
+
+#set description
+description_labels<-c("Human Capital & Research", "Infrastructure", "Business \nSophistication", 
+                      "Institutions", "Market \nSophistication")
+descriptions<-rep(description_labels, 3) #create this for data frame
+
+#get values 
+for (i in list_of_series){
+  values<-append(values, last(getValues(FetchOneTimeSeries(i))))
+}
+
+#prepare data frame
+data <- data.frame(region, descriptions, values)
+#change format of data from long to wide
+data <- spread(data, descriptions, values)
+
+#set colors
+colors <- c("#58A291", "#F68D2E", "#CD545B")
+
+#plot
+ggradar(data, 
+        values.radar = c(0, 40, 80), #0%, 50%, 100% of values
+        axis.labels = c(description_labels), #description of each 'arm'
+        grid.min=0,grid.mid=40, grid.max=80, #grid labels
+        background.circle.colour = "white", #background settings
+        axis.line.colour = "grey", #axis line's settings
+        axis.label.size=4,
+        gridline.min.colour = "grey", #gridlines' settings
+        gridline.mid.colour = "grey",
+        gridline.max.colour = "grey",
+        grid.label.size=5,
+        group.colours = colors, #chart's lines settings
+        group.line.width=	1.2,
+        group.point.size=5,
+        legend.title="Global Innovation Index", #legend's settings
+        legend.position = "top", 
+        legend.text.size = 10) 
