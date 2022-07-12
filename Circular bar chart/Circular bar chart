@@ -37,6 +37,7 @@ country<-countrycode(as.vector(country), origin="iso2c", destination ="country.n
 
 #prepare data frame
 data <- data.frame(values, country) %>%
+  drop_na() %>% #remove NA, useful when data set has series for group of countries
   arrange(values) %>% #this will sort data frame only
   mutate(country=factor(country, levels=country)) #for ggplot2 you need to plot factor levels too
 data <- mutate(data, id=seq(from=1, to=nrow(data)))
